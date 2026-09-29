@@ -1,0 +1,83 @@
+<!DOCTYPE html><meta charset=utf-8><meta name=viewport content="width=device-width,user-scalable=no"><title>no-free</title>
+<style>
+:root{--b:#fef7ff;--f:#1d1b20;--e:#e8def8;--p:#6750a4;--o:#fff;--c:#fff;--n:#ccc;--l:#f0f0f0;--s:#777;color-scheme:light}
+:root[data-d]{--b:#141218;--f:#e6e0e9;--e:#4a4458;--p:#d0bcff;--o:#381e72;--c:#211f26;--n:#49454f;--l:#2b2930;--s:#938f99;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;font:14px Roboto,sans-serif;background:var(--b);color:var(--f)}
+main{max-width:720px;margin:auto;padding:12px}
+.bar{display:flex;gap:8px;position:sticky;top:0;background:var(--b);padding:8px 0;z-index:1}
+button{border:0;border-radius:20px;background:var(--e);color:var(--f);padding:10px;font-size:14px}
+.tab{flex:1}.on,.b{background:var(--p);color:var(--o)}#k{flex:none;padding:10px 14px}.b{padding:10px 20px}button:disabled{opacity:.6}
+.f{display:flex;gap:8px;margin-bottom:8px}
+#q{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--n);border-radius:12px;background:var(--c);color:var(--f);font-size:14px}
+#r{border-radius:12px;padding:0 16px}
+.m{display:flex;justify-content:space-between;font-size:12px;color:var(--s);margin:0 2px 8px}
+.m label{display:flex;align-items:center;gap:4px}
+#l,section{background:var(--c);border-radius:16px;overflow:hidden}
+.i{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--l)}
+.i:last-child{border:0}
+img{width:40px;height:40px;border-radius:8px;background:var(--n);flex:none}
+.t{flex:1;min-width:0}
+.t b,.t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t small{font-size:11px;color:var(--s)}
+.w{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.w label{display:flex;align-items:center;gap:6px;font-size:11px}
+input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:var(--p)}
+.e{text-align:center;padding:40px;margin:0;color:var(--s)}
+section{padding:16px;margin-bottom:16px}
+h3{margin:0 0 8px;font-size:14px}
+textarea{width:100%;font:13px monospace;padding:10px;border:1px solid var(--n);border-radius:8px;background:var(--c);color:var(--f);margin-bottom:10px}
+#z{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--f);color:var(--b);padding:10px 20px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+#z.v{opacity:1}
+</style>
+<script>
+let th=0;try{th=+localStorage.th||0}catch{}
+const R=document.documentElement,mq=matchMedia('(prefers-color-scheme:dark)'),dk=()=>{R.toggleAttribute('data-d',th==2||!th&&mq.matches);const b=document.getElementById('k');if(b)b.textContent=['跟随系统','浅色','深色'][th]};
+mq.onchange=dk;dk()
+</script>
+<main>
+<div class=bar><button class="tab on">应用</button><button class=tab>域名 / IP</button><button id=k></button></div>
+<div class=p>
+<div class=f><input id=q placeholder="搜索应用名或包名..."><button id=r>刷新</button></div>
+<div class=m><span id=m></span><label><input type=checkbox id=y checked>显示系统应用</label></div>
+<div id=l><p class=e>加载中...</p></div>
+</div>
+<div class=p hidden>
+<section><h3>屏蔽域名（每行一个, 如 ads.example.com）</h3><textarea id=d rows=12></textarea><button class=b data-k=域名 data-m=已保存>保存</button></section>
+<section><h3>屏蔽 IP（每行一个, 如 38.65.28.61 或 38.65.28.61/32）</h3><textarea id=i rows=12></textarea><button class=b data-k=IP data-m=已屏蔽>屏蔽</button></section>
+</div>
+</main>
+<div id=z></div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),D='/sdcard/Android/no-free/',S='sh /data/adb/modules/no-free/no-free.sh';let n=0,A=[],C={};
+const x=c=>new Promise(r=>{const k='c'+n++;window[k]=(e,o)=>{delete window[k];r({e,o})};try{ksu.exec(c,'{}',k)}catch{r({e:1,o:''})}}),
+rc=async()=>{const r=await x(S+' c');if(r.e||!r.o)return 0;const p=r.o.split(/^\[(.+?)\][ \t\r]*$/m);C={'':p[0]};for(let i=1;i<p.length;i+=2)C[p[i]]=p[i+1];return 1},
+g=k=>C[k]||'',
+st=(k,v)=>C[k]='\n'+v.replace(/\n*$/,'\n'),
+wc=async()=>!(await x(`echo ${btoa(unescape(encodeURIComponent(Object.entries(C).map(([k,v])=>k?`[${k}]${v}`:v).join(''))))}|base64 -d>${D}config.txt`)).e,
+ap=async()=>!(await x(S)).e,
+L=s=>s.split('\n').map(l=>l.replace(/#.*/,'').trim()).filter(Boolean),
+t=m=>{try{ksu.toast(m)}catch{const e=$('#z');e.textContent=m;e.className='v';setTimeout(()=>e.className='',1800)}},
+io=new IntersectionObserver(a=>a.forEach(e=>e.isIntersecting&&(e.target.src=e.target.dataset.s,io.unobserve(e.target))),{rootMargin:'300px'}),
+sm=()=>$('#m').textContent=`共 ${A.length} 个应用 · 已禁用 ${A.filter(a=>a.d).length} · 已断网 ${A.filter(a=>a.w).length}`,
+draw=()=>{const q=$('#q').value.trim().toLowerCase(),y=$('#y').checked;
+$('#l').innerHTML=A.filter(a=>(y||!a.s)&&(a.n+a.k).toLowerCase().includes(q)).map(a=>`<div class=i><img alt="" data-s=ksu://icon/${a.k}><div class=t><b>${a.n.replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';')}</b><small>${a.k}</small></div><div class=w><label>禁用<input type=checkbox data-k=${a.k} data-t=0 ${a.d?'checked':''}></label><label>断网<input type=checkbox data-k=${a.k} data-t=1 ${a.w?'checked':''}></label></div></div>`).join('')||'<p class=e>未找到匹配的应用</p>';
+$$('img').forEach(i=>io.observe(i))},
+load=async()=>{await rc();const[p,u]=await Promise.all([x('pm list packages'),x('pm list packages -3')]),
+f=r=>L(r.o.replace(/package:/g,'')),d=new Set(L(g('禁用'))),w=new Set(L(g('断网'))),U=new Set(f(u)),S=new Set(f(p)),V=[...new Set([...S,...d,...w])],m={};
+try{JSON.parse(ksu.getPackagesInfo(JSON.stringify(V))).forEach(i=>m[i.packageName]=i.appLabel)}catch{}
+A=V.map(k=>({k,n:m[k]||k,d:d.has(k),w:w.has(k),s:S.has(k)&&!U.has(k)})).sort((a,b)=>(b.d||b.w)-(a.d||a.w)||a.n.localeCompare(b.n));
+sm();draw()},
+rl=async()=>{await rc();$('#d').value=g('域名').trim();$('#i').value=g('IP').trim()};
+$('#q').oninput=$('#y').onchange=draw;
+$('#r').onclick=async function(){this.disabled=1;await load();this.disabled=0};
+$('#l').onchange=async({target:c})=>{const k=c.dataset.k,w=+c.dataset.t,v=c.checked,f=w?'断网':'禁用';c.disabled=1;
+let ok=await rc();
+if(ok){const s=new Set(L(g(f)));v?s.add(k):s.delete(k);st(f,[...g(f).split('\n').filter(l=>/^\s*#/.test(l)),...s].join('\n'));ok=await wc()&&await ap()}
+const a=A.find(a=>a.k==k);
+ok?a[w?'w':'d']=v:c.checked=!v;c.disabled=0;sm();
+t(ok?(v?w?'已断网 ':'已禁用 ':'已恢复 ')+k:'失败, 已还原 '+k)};
+$$('.b').forEach(b=>b.onclick=async()=>{b.disabled=1;const o=await rc()&&(st(b.dataset.k,b.previousElementSibling.value),await wc())&&await ap();b.disabled=0;t(o?b.dataset.m:'保存失败')});
+const T=$$('.tab'),V=$$('main>.p');T.forEach((b,i)=>b.onclick=()=>{T.forEach((c,j)=>{c.classList.toggle('on',i==j);V[j].hidden=i!=j});i&&rl()});
+$('#k').onclick=()=>{th=(th+1)%3;try{localStorage.th=th}catch{}dk()};dk();
+load()
+</script>
