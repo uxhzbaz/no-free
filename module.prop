@@ -4,4 +4,4 @@ version=v1.8
 versionCode=9
 author=Claude
 description=禁用软件网络 屏蔽域名/IP. 配置 /sdcard/Android/no-free/config.txt
-updateJson=
+updateJson=https://raw.githubusercontent.com/uxhzbaz/no-free/refs/heads/main/no-free.json
