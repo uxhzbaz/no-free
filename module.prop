@@ -1,0 +1,7 @@
+id=no-free
+name=no-free
+version=v1.8
+versionCode=9
+author=Claude
+description=禁用软件网络 屏蔽域名/IP. 配置 /sdcard/Android/no-free/config.txt
+updateJson=
