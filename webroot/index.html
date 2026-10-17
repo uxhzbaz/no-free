@@ -11,7 +11,7 @@ button{border:0;border-radius:20px;background:var(--e);color:var(--f);padding:10
 #q{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--n);border-radius:12px;background:var(--c);color:var(--f);font-size:14px}
 #r{border-radius:12px;padding:0 16px}
 .m{display:flex;justify-content:space-between;font-size:12px;color:var(--s);margin:0 2px 8px}
-.m label{display:flex;align-items:center;gap:4px}
+.m label{display:inline-flex;align-items:center;gap:4px;margin-left:10px}
 #l,section{background:var(--c);border-radius:16px;overflow:hidden}
 .i{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--l)}
 .i:last-child{border:0}
@@ -19,12 +19,11 @@ img{width:40px;height:40px;border-radius:8px;background:var(--n);flex:none}
 .t{flex:1;min-width:0}
 .t b,.t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .t small{font-size:11px;color:var(--s)}
-.w{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
-.w label{display:flex;align-items:center;gap:6px;font-size:11px}
-input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:var(--p)}
+input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--p);flex:none}
 .e{text-align:center;padding:40px;margin:0;color:var(--s)}
 section{padding:16px;margin-bottom:16px}
 h3{margin:0 0 8px;font-size:14px}
+.cl{display:flex;align-items:center;justify-content:space-between;gap:12px}.cl small{display:block;color:var(--s);font-size:11px;margin-top:2px}
 textarea{width:100%;font:13px monospace;padding:10px;border:1px solid var(--n);border-radius:8px;background:var(--c);color:var(--f);margin-bottom:10px}
 #z{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--f);color:var(--b);padding:10px 20px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s}
 #z.v{opacity:1}
@@ -35,49 +34,47 @@ const R=document.documentElement,mq=matchMedia('(prefers-color-scheme:dark)'),dk
 mq.onchange=dk;dk()
 </script>
 <main>
-<div class=bar><button class="tab on">应用</button><button class=tab>域名 / IP</button><button id=k></button></div>
+<div class=bar><button class="tab on">禁用</button><button class=tab>断网</button><button class=tab>规则</button><button id=k></button></div>
 <div class=p>
 <div class=f><input id=q placeholder="搜索应用名或包名..."><button id=r>刷新</button></div>
-<div class=m><span id=m></span><label><input type=checkbox id=y checked>显示系统应用</label></div>
-<div id=l><p class=e>加载中...</p></div>
+<div class=m><span id=m></span><span><label><input type=checkbox id=o>仅已选</label><label><input type=checkbox id=y checked>系统应用</label></span></div>
+<div id=l><p class=e>加载中...</p></div><div id=sn></div>
 </div>
 <div class=p hidden>
-<section><h3>屏蔽域名（每行一个, 如 ads.example.com）</h3><textarea id=d rows=12></textarea><button class=b data-k=域名 data-m=已保存>保存</button></section>
-<section><h3>屏蔽 IP（每行一个, 如 38.65.28.61 或 38.65.28.61/32）</h3><textarea id=i rows=12></textarea><button class=b data-k=IP data-m=已屏蔽>屏蔽</button></section>
+<section><h3>屏蔽域名（hosts）</h3><textarea data-k=域名 rows=6></textarea><button class=b data-k=域名>保存</button></section>
+<section><h3>屏蔽 IP</h3><textarea data-k=IP rows=6></textarea><button class=b data-k=IP>保存</button></section>
+<section><h3>SNI 拦截域名（按 TLS 域名拦）</h3><textarea data-k=SNI rows=6></textarea><button class=b data-k=SNI>保存</button></section>
+<section><h3>共享 IP（仅对这些 IP 做 SNI 过滤）</h3><textarea data-k=共享IP rows=6></textarea><button class=b data-k=共享IP>保存</button></section>
+<section><h3>放行应用（不受 SNI 过滤, 每行一个包名）</h3><textarea data-k=放行 rows=4></textarea><button class=b data-k=放行>保存</button></section>
 </div>
 </main>
 <div id=z></div>
 <script>
-const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),D='/sdcard/Android/no-free/',S='sh /data/adb/modules/no-free/no-free.sh';let n=0,A=[],C={};
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),S='sh /data/adb/modules/no-free/no-free.sh',G=['禁用','断网'],F=['d','w'],V=['已禁用 ','已断网 '];let n=0,A=[],C={},M=0,X=[],O=0,Q=Promise.resolve();
 const x=c=>new Promise(r=>{const k='c'+n++;window[k]=(e,o)=>{delete window[k];r({e,o})};try{ksu.exec(c,'{}',k)}catch{r({e:1,o:''})}}),
-rc=async()=>{const r=await x(S+' c');if(r.e||!r.o)return 0;const p=r.o.split(/^\[(.+?)\][ \t\r]*$/m);C={'':p[0]};for(let i=1;i<p.length;i+=2)C[p[i]]=p[i+1];return 1},
-g=k=>C[k]||'',
-st=(k,v)=>C[k]='\n'+v.replace(/\n*$/,'\n'),
-wc=async()=>!(await x(`echo ${btoa(unescape(encodeURIComponent(Object.entries(C).map(([k,v])=>k?`[${k}]${v}`:v).join(''))))}|base64 -d>${D}config.txt`)).e,
-ap=async()=>!(await x(S)).e,
-L=s=>s.split('\n').map(l=>l.replace(/#.*/,'').trim()).filter(Boolean),
+job=f=>{const j=Q.then(f);Q=j.catch(()=>0);return j},
+ps=o=>{const p=o.split(/^\[(.+?)\][ \t\r]*$/m);C={'':p[0]};for(let i=1;i<p.length;i+=2)C[p[i]]=p[i+1]},
+rc=async()=>{const r=await x(S+' c');if(r.e||!r.o)return 0;ps(r.o);return 1},
+L=s=>(s||'').split('\n').map(l=>l.replace(/#.*/,'').trim()).filter(Boolean),
 t=m=>{try{ksu.toast(m)}catch{const e=$('#z');e.textContent=m;e.className='v';setTimeout(()=>e.className='',1800)}},
 io=new IntersectionObserver(a=>a.forEach(e=>e.isIntersecting&&(e.target.src=e.target.dataset.s,io.unobserve(e.target))),{rootMargin:'300px'}),
-sm=()=>$('#m').textContent=`共 ${A.length} 个应用 · 已禁用 ${A.filter(a=>a.d).length} · 已断网 ${A.filter(a=>a.w).length}`,
-draw=()=>{const q=$('#q').value.trim().toLowerCase(),y=$('#y').checked;
-$('#l').innerHTML=A.filter(a=>(y||!a.s)&&(a.n+a.k).toLowerCase().includes(q)).map(a=>`<div class=i><img alt="" data-s=ksu://icon/${a.k}><div class=t><b>${a.n.replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';')}</b><small>${a.k}</small></div><div class=w><label>禁用<input type=checkbox data-k=${a.k} data-t=0 ${a.d?'checked':''}></label><label>断网<input type=checkbox data-k=${a.k} data-t=1 ${a.w?'checked':''}></label></div></div>`).join('')||'<p class=e>未找到匹配的应用</p>';
-$$('img').forEach(i=>io.observe(i))},
-load=async()=>{await rc();const[p,u]=await Promise.all([x('pm list packages'),x('pm list packages -3')]),
-f=r=>L(r.o.replace(/package:/g,'')),d=new Set(L(g('禁用'))),w=new Set(L(g('断网'))),U=new Set(f(u)),S=new Set(f(p)),V=[...new Set([...S,...d,...w])],m={};
+so=new IntersectionObserver(a=>a[0].isIntersecting&&more(),{rootMargin:'600px'}),
+sm=()=>$('#m').textContent=`共 ${A.length} 个应用 · ${V[M]}${A.filter(a=>a[F[M]]).length}`,
+row=a=>`<div class=i><img alt="" data-s=ksu://icon/${a.k}><div class=t><b>${a.n.replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';')}</b><small>${a.k}</small></div><input type=checkbox data-k=${a.k} ${a[F[M]]?'checked':''}></div>`,
+more=()=>{so.unobserve($('#sn'));const s=X.slice(O,O+40);if(!s.length)return;O+=40;$('#l').insertAdjacentHTML('beforeend',s.map(row).join(''));$$('#l img:not([data-o])').forEach(i=>{i.dataset.o=1;io.observe(i)});O<X.length&&so.observe($('#sn'))},
+draw=()=>{const q=$('#q').value.trim().toLowerCase(),y=$('#y').checked,o=$('#o').checked,f=F[M];
+X=A.filter(a=>(y||!a.s)&&(!o||a[f])&&(a.n+a.k).toLowerCase().includes(q)).sort((a,b)=>b[f]-a[f]||a.n.localeCompare(b.n));O=0;$('#l').innerHTML=X.length?'':'<p class=e>未找到匹配的应用</p>';more();sm()},
+load=async()=>{const r=await x(`${S} c;echo @@;pm list packages;echo @@;pm list packages -3`),[c,p,u]=r.o.split(/^@@\r?$/m).map(o=>({o})),_=ps(c.o),
+f=r=>L(r.o.replace(/package:/g,'')),d=new Set(L(C['禁用'])),w=new Set(L(C['断网'])),U=new Set(f(u)),P=new Set(f(p)),V=[...new Set([...P,...d,...w])],m={};
 try{JSON.parse(ksu.getPackagesInfo(JSON.stringify(V))).forEach(i=>m[i.packageName]=i.appLabel)}catch{}
-A=V.map(k=>({k,n:m[k]||k,d:d.has(k),w:w.has(k),s:S.has(k)&&!U.has(k)})).sort((a,b)=>(b.d||b.w)-(a.d||a.w)||a.n.localeCompare(b.n));
-sm();draw()},
-rl=async()=>{await rc();$('#d').value=g('域名').trim();$('#i').value=g('IP').trim()};
-$('#q').oninput=$('#y').onchange=draw;
+A=V.map(k=>({k,n:m[k]||k,d:d.has(k),w:w.has(k),s:P.has(k)&&!U.has(k)}));draw()},
+rl=async()=>{await job(rc);$$('textarea').forEach(e=>e.value=L(C[e.dataset.k]).join('\n'))};
+$('#q').oninput=$('#y').onchange=$('#o').onchange=draw;
 $('#r').onclick=async function(){this.disabled=1;await load();this.disabled=0};
-$('#l').onchange=async({target:c})=>{const k=c.dataset.k,w=+c.dataset.t,v=c.checked,f=w?'断网':'禁用';c.disabled=1;
-let ok=await rc();
-if(ok){const s=new Set(L(g(f)));v?s.add(k):s.delete(k);st(f,[...g(f).split('\n').filter(l=>/^\s*#/.test(l)),...s].join('\n'));ok=await wc()&&await ap()}
-const a=A.find(a=>a.k==k);
-ok?a[w?'w':'d']=v:c.checked=!v;c.disabled=0;sm();
-t(ok?(v?w?'已断网 ':'已禁用 ':'已恢复 ')+k:'失败, 已还原 '+k)};
-$$('.b').forEach(b=>b.onclick=async()=>{b.disabled=1;const o=await rc()&&(st(b.dataset.k,b.previousElementSibling.value),await wc())&&await ap();b.disabled=0;t(o?b.dataset.m:'保存失败')});
-const T=$$('.tab'),V=$$('main>.p');T.forEach((b,i)=>b.onclick=()=>{T.forEach((c,j)=>{c.classList.toggle('on',i==j);V[j].hidden=i!=j});i&&rl()});
+$('#l').onchange=({target:c})=>{const k=c.dataset.k,a=A.find(a=>a.k==k),f=F[M],g=G[M],v=c.checked;a[f]=v;sm();
+job(()=>x(`${S} t ${g} ${k} ${+v}`)).then(r=>{if(r.e){a[f]=!v;draw();t('失败 '+k)}else t((v?V[M]:'已恢复 ')+k)})};
+$$('.b').forEach(b=>b.onclick=()=>{b.disabled=1;const v=btoa(unescape(encodeURIComponent(L(b.previousElementSibling.value).join('\n'))));job(()=>x(`${S} w ${b.dataset.k} ${v||'Cg=='}`)).then(r=>{b.disabled=0;t(r.e?'保存失败':'已保存')})});
+const T=$$('.tab'),W=$$('main>.p');T.forEach((b,i)=>b.onclick=()=>{T.forEach((c,j)=>c.classList.toggle('on',i==j));W[0].hidden=i>1;W[1].hidden=i<2;if(i>1)rl();else{M=i;draw()}});
 $('#k').onclick=()=>{th=(th+1)%3;try{localStorage.th=th}catch{}dk()};dk();
 load()
 </script>
